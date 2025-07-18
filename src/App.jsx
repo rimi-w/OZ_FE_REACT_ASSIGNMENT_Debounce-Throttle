@@ -1,14 +1,41 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 
 function App() {
-  const [query, setQuery] = useState("");
+  const [debounceInputValue, setDebounceInputValue] = useState("");
+  const [throttleInputValue, setThrottleInputValue] = useState("")
   const [searchString, setSearchString] = useState("");
+  const time = useRef(new Date());
 
-  const handleChange = (event) => {
-    setQuery(event.target.value);
+  const handleDebounceInput = useCallback((event) => {
+    setDebounceInputValue(event.target.value);
     console.log("검색 쿼리:", event.target.value);
-  };
+  }, []);
+
+  const handleThrottleInput = useCallback((event) => {
+    setThrottleInputValue(event.target.value);
+    console.log("검색 쿼리:", event.target.value);
+  }, []);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      setSearchString(debounceInputValue);
+    }, 1000);
+
+    return () => clearTimeout(debounce);
+  }, [debounceInputValue])
+
+  useEffect(() => {
+    const newTime = new Date();
+
+    const throttle = setTimeout(() => {
+      setSearchString(throttleInputValue)
+      time.current = new Date();
+    }, 1000 - (newTime - time.current));
+
+    return () => clearTimeout(throttle)
+  }, [throttleInputValue])
+
 
   return (
     <div className="container">
@@ -22,7 +49,7 @@ function App() {
         <input
           type="text"
           placeholder="Debounce를 이용한 검색..."
-          onChange={handleChange}
+          onChange={handleDebounceInput}
         />
       </div>
       <div>
@@ -30,10 +57,10 @@ function App() {
         <input
           type="text"
           placeholder="Throttle을 이용한 검색..."
-          onChange={handleChange}
+          onChange={handleThrottleInput}
         />
       </div>
-      <p>{searchString}</p>
+      <p>search word : {searchString}</p>
     </div>
   );
 }
